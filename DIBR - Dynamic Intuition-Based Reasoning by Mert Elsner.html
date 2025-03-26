@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Intuition-Based Reasoning: A Novel Approach Toward AGI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+             scroll-behavior: smooth;
+             scroll-padding-top: 30px; /* Offset for scroll targets */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 300px; /* Fixed width for the sidebar */
+            height: 100vh; /* Full height */
+            position: fixed; /* Fixed Sidebar (stays in place on scroll) */
+            background-color: #f5f5f5;
+            padding: 20px;
+            overflow-y: auto; /* Enable scroll if needed */
+            border-right: 1px solid #ddd;
+            z-index: 1000; /* Ensure sidebar stays on top */
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #444;
+            font-size: 1.2em;
+        }
+
+        .nav-item {
+            padding: 8px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            font-size: 0.95em; /* Slightly smaller font for nav items */
+            display: block; /* Ensure div takes full width */
+            position: relative; /* Needed for potential absolute positioning inside if required */
+        }
+
+        .nav-item:hover {
+            background-color: #e0e0e0;
+        }
+
+        .nav-item.active {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        /* Style active item's text span if needed */
+        .nav-item.active span[data-target] {
+           /* color: white; */ /* Already inherited */
+        }
+
+
+        .sub-nav {
+            padding-left: 20px;
+            display: none; /* Hidden by default */
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* Show sub-nav when parent has .open class */
+        .nav-item.open > .sub-nav {
+            display: block;
+        }
+
+        /* Emoji Arrow Styling using ::before on the text span */
+        .nav-item.has-subnav > span[data-target]::before {
+            display: inline-block; /* Allow spacing */
+            margin-right: 7px; /* Space between emoji and text */
+            width: 1.3em; /* Fixed width to prevent text jumping, adjust if needed */
+            text-align: left;
+            vertical-align: -0.1em; /* Fine-tune vertical alignment */
+            transition: transform 0.2s ease-out; /* Optional: Add transition */
+            content: '▶️'; /* Default: Closed state emoji */
+        }
+
+        .nav-item.has-subnav.open > span[data-target]::before {
+            content: '🔽'; /* Open state emoji */
+        }
+
+
+        /* Content styles */
+        .content {
+            margin-left: 300px; /* Same as sidebar width */
+            padding: 30px 40px;
+            max-width: 1200px;
+            width: calc(100% - 300px); /* Adjust width */
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            color: #222;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h3 {
+            font-size: 1.4em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+        /* Specific styling for definition */
+         p em {
+            display: block; /* Make the emphasized definition a block element */
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 3px solid #007bff;
+            margin: 15px 0;
+            font-style: normal; /* Override browser default italic for em if desired */
+        }
+
+
+        .author-info {
+            font-style: italic;
+            margin-bottom: 20px; /* Reduced margin */
+            color: #666;
+        }
+        .author-info strong {
+            font-style: normal;
+        }
+         .author-info em {
+             font-style: italic; /* Ensure affiliation remains italic */
+         }
+
+
+        .video-podcast {
+            margin-bottom: 30px;
+            border: 1px solid #eee;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .video-podcast h4 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            background: #000;
+            border-radius: 4px; /* Optional rounded corners */
+            margin-bottom: 10px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+
+        .abstract {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 30px;
+        }
+        .abstract h2 {
+            margin-top: 0; /* Remove top margin for h2 inside abstract */
+            border-bottom: none;
+        }
+
+        .keywords {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 0; /* Remove margin below keywords inside abstract */
+        }
+        .keywords strong {
+             font-style: normal;
+        }
+
+
+        ul, ol {
+            margin-bottom: 20px;
+            padding-left: 30px; /* Indent lists slightly more */
+        }
+
+        li {
+            margin-bottom: 10px; /* More space between list items */
+        }
+        /* Style nested list items */
+        ul ul, ol ol, ul ol, ol ul {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        li li {
+            margin-bottom: 8px;
+        }
+         /* Style strong within li */
+         li strong {
+             font-weight: 600;
+         }
+
+
+        .references {
+            margin-top: 50px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .references h2 {
+            margin-top: 0;
+            border-bottom: none;
+        }
+
+        .reference-item {
+            margin-bottom: 15px;
+            padding-left: 25px;
+            text-indent: -25px; /* Hanging indent */
+            font-size: 0.9em;
+        }
+         .reference-item em { /* Italicize journal/book titles */
+            font-style: italic;
+            background-color: transparent; /* Override definition style */
+            padding: 0;
+            border-left: none;
+            margin: 0;
+            display: inline; /* Ensure it stays inline */
+        }
+
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-notes {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ccc;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .footer-notes h3 {
+             font-size: 1.1em;
+             color: #333; /* Darker heading */
+        }
+        .footer-notes strong {
+            font-weight: bold;
+        }
+
+
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 250px;
+            }
+            .content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+                padding: 20px 30px;
+            }
+        }
+
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto; /* Auto height for horizontal layout */
+                position: relative; /* Change from fixed */
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+                max-height: 50vh; /* Limit height when horizontal */
+                overflow-y: auto; /* Ensure scrolling if content exceeds max-height */
+            }
+            .content {
+                margin-left: 0; /* No margin needed */
+                width: 100%;
+                padding: 20px;
+            }
+             h1 { font-size: 1.8em; }
+             h2 { font-size: 1.5em; }
+             h3 { font-size: 1.2em; }
+        }
+
+         /* Accessibility focus */
+         .nav-item:focus, .nav-item > span[data-target]:focus {
+             outline: 2px solid #0056b3;
+             outline-offset: 1px;
+             border-radius: 2px; /* Add slight radius to focus outline */
+         }
+
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Table of Contents</h3>
+
+        <!-- Sidebar navigation items -->
+        <!-- Note: data-id used for observer matching, data-target for click scrolling -->
+        <div class="nav-item" data-id="title" data-target="title">Title</div>
+        <div class="nav-item" data-id="author-info" data-target="author-info">Author Info</div>
+        <div class="nav-item" data-id="video-podcast" data-target="video-podcast">Video Podcast</div>
+        <div class="nav-item" data-id="abstract" data-target="abstract">Abstract</div>
+
+        <div class="nav-item has-subnav" data-id="introduction">
+            <span data-target="introduction">1. Introduction</span>
+        </div>
+
+        <div class="nav-item has-subnav" data-id="literature-review">
+            <span data-target="literature-review">2. Literature Review</span>
+            <div class="sub-nav">
+                <div class="nav-item" data-target="human-intuition">2.1 Human Intuition and Insight</div>
+                <div class="nav-item" data-target="continuity-discontinuity">2.2 Resolving the Continuity-Discontinuity Debate</div>
+                <div class="nav-item" data-target="ai-reasoning">2.3 Current Approaches to AI Reasoning</div>
+                <div class="nav-item" data-target="gap">2.4 The Gap Between Current AI and Human Cognition</div>
+            </div>
+        </div>
+
+        <div class="nav-item has-subnav" data-id="theoretical-framework">
+            <span data-target="theoretical-framework">3. Theoretical Framework for DIBR</span>
+            <div class="sub-nav">
+                <div class="nav-item" data-target="formal-definition">3.1 Formal Definition</div>
+                <div class="nav-item" data-target="architectural-specifications">3.2 Architectural Specs</div>
+                <div class="nav-item" data-target="processing-dynamics">3.3 Processing Dynamics</div>
+            </div>
+        </div>
+
+        <div class="nav-item has-subnav" data-id="implementation">
+             <span data-target="implementation">4. Implementation Approaches</span>
+            <div class="sub-nav">
+                <div class="nav-item" data-target="neural-architecture">4.1 Neural Architecture Specs</div>
+                <div class="nav-item" data-target="training-methodology">4.2 Training Methodology</div>
+                <div class="nav-item" data-target="benchmarking">4.3 Benchmarking & Evaluation</div>
+            </div>
+        </div>
+
+        <div class="nav-item has-subnav" data-id="experimental-validation">
+            <span data-target="experimental-validation">5. Experimental Validation</span>
+            <div class="sub-nav">
+                <div class="nav-item" data-target="proof-of-concept">5.1 Proof-of-Concept Studies</div>
+                <div class="nav-item" data-target="comparative-studies">5.2 Comparative Studies</div>
+                <div class="nav-item" data-target="longitudinal-study">5.3 Longitudinal Study</div>
+            </div>
+        </div>
+
+        <div class="nav-item has-subnav" data-id="implications">
+            <span data-target="implications">6. Implications & Ethics</span>
+            <div class="sub-nav">
+                <div class="nav-item" data-target="agi-development">6.1 Implications for AGI</div>
+                <div class="nav-item" data-target="ethical-considerations">6.2 Ethical Considerations</div>
+                <div class="nav-item" data-target="limitations">6.3 Limitations & Challenges</div>
+            </div>
+        </div>
+
+        <div class="nav-item has-subnav" data-id="conclusion">
+            <span data-target="conclusion">7. Conclusion & Future</span>
+        </div>
+
+        <div class="nav-item" data-id="references" data-target="references">References</div>
+        <div class="nav-item" data-id="footer-notes" data-target="footer-notes">Notes & License</div>
+
+    </div>
+
+    <div class="content">
+        <h1 id="title">Dynamic Intuition-Based Reasoning: A Novel Approach Toward Artificial General Intelligence</h1>
+
+        <div id="author-info" class="author-info">
+            <strong>Mert Can Elsner</strong><br>
+            <a href="https://www.veyllo.io" target="_blank" rel="noopener noreferrer"><em>Veyllo GmbH</em></a>
+        </div>
+
+        <section id="video-podcast" class="video-podcast">
+            <h4>Video Podcast Summary</h4>
+            <p>Listen to a summary of this paper:</p>
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/-w-uYK5kdv4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+             <p><a href="https://youtu.be/-w-uYK5kdv4?si=9MEyv_FZCIUcxcvX" target="_blank" rel="noopener noreferrer">Watch on YouTube</a></p>
+        </section>
+
+        <section id="abstract" class="abstract">
+            <h2>Abstract</h2>
+            <p>This paper introduces a theoretical framework for enhancing large language models (LLMs) through what I term "dynamic intuition-based reasoning" (DIBR). While current LLMs excel at logical reasoning within their training domains, they struggle with novel problems that require intuitive leaps. This research proposes that by implementing a computational analog to human intuition—characterized as rapid, non-analytical pattern recognition that precedes explicit reasoning—LLMs could approach artificial general intelligence (AGI) capabilities. The proposed DIBR system operates through iterative cycles where intuitive pattern recognition generates initial hypotheses that are subsequently refined through analytical reasoning, with successful intuitions being retained and strengthened in the model's memory. Drawing on cognitive science literature on human intuition and insights, this paper outlines the theoretical foundations, concrete architectural implementations, and rigorous evaluation frameworks for DIBR. Preliminary theoretical analysis and proposed empirical validation approaches suggest that such a system may enable more flexible problem-solving in unprecedented scenarios, a hallmark capability required for true AGI. The paper also addresses critical ethical considerations and implementation challenges that must be overcome to realize this vision responsibly.</p>
+            <p class="keywords"><strong>Keywords</strong>: artificial general intelligence, large language models, intuition, reasoning, dynamic systems, pattern recognition, insight problem solving, computational cognition</p>
+        </section>
+
+        <section id="introduction">
+            <h2>1. Introduction</h2>
+            <p>Recent advancements in large language models (LLMs) have demonstrated impressive capabilities in reasoning, knowledge retrieval, and language understanding. Models such as Deepseek V3 (2024), GPT-4 (OpenAI, 2023) and PaLM (Chowdhery et al., 2022) have shown remarkable performance across diverse tasks. However, these systems exhibit fundamental limitations when confronted with entirely novel problems or scenarios requiring creative leaps beyond their training distribution (Mitchell, 2021).</p>
+            <p>This limitation stems from the fundamental architecture of current LLMs, which—despite their sophisticated pattern recognition capabilities—lack a crucial capability that humans possess: intuition. In human cognition, intuition operates as a rapid, non-analytical form of intelligence that allows for pattern recognition and hypothesis generation before conscious reasoning takes place (Kahneman, 2011; Fox, 2022). This intuitive capability enables humans to navigate novel situations by making educated guesses based on partial pattern matching to prior experiences.</p>
+            <p>This paper proposes that implementing a computational analog to human intuition within LLM architectures could address this limitation and represent a significant step toward artificial general intelligence. The proposed approach, which I term "dynamic intuition-based reasoning" (DIBR), involves augmenting traditional reasoning mechanisms in LLMs with a precisely defined layer of intuitive pattern recognition that operates dynamically with analytical processes.</p>
+            <p>The paper is structured as follows: Section 2 reviews the relevant literature on human intuition, insight, and current approaches to reasoning in AI systems. Section 3 presents the theoretical framework for DIBR, including its cognitive foundations and detailed architectural specifications. Section 4 discusses concrete implementation approaches with technical details, while Section 5 proposes rigorous experimental validation methodologies. Section 6 explores the implications, ethical considerations, and limitations of the proposed model. Section 7 concludes with future research directions.</p>
+        </section>
+
+        <section id="literature-review">
+            <h2>2. Literature Review</h2>
+
+            <section id="human-intuition">
+                <h3>2.1 Human Intuition and Insight: From Phenomenology to Mechanism</h3>
+                <p>Intuition has been extensively studied in cognitive psychology and neuroscience, with various models proposed to explain its mechanisms. Kahneman (2011) distinguishes between two systems of thinking: System 1, which is fast, automatic, and intuitive, and System 2, which is slow, deliberate, and analytical. According to this dual-process theory, intuition operates through System 1, providing rapid judgments that are then verified or corrected by System 2 when necessary.</p>
+                <p>To operationalize intuition more precisely, we must go beyond phenomenological descriptions to identify its computational underpinnings. Bowers et al. (1990, 1995) proposed a continuity model of intuition, describing it as "a preliminary perception of coherence (pattern, meaning, structure) that is not consciously represented, but that nevertheless guides thought and inquiry toward a hunch or hypothesis about the nature of the coherence in question." Importantly, they demonstrated experimentally that this process could be measured through semantic coherence tasks, where participants could accurately judge whether word triads shared a common associate even when unable to identify that associate explicitly.</p>
+                <p>In contrast, insight problem-solving research has often emphasized a discontinuity model, where insights emerge through sudden restructuring of mental representations rather than gradual accumulation (Ohlsson, 1992, 2011). This view suggests that initial intuitions might sometimes lead problem-solvers astray, requiring a fundamental reorganization of thought to achieve breakthroughs. Knoblich and Öllinger (2006) formalized this process as constraint relaxation, where self-imposed limitations in problem representation are overcome, enabling new solution paths.</p>
+                <p>Recent neuroimaging studies have shed light on the neural mechanisms of intuition. Volz and Zander (2014) describe intuition as the read-out of "tacitly (in)formed cue-criterion relationships," suggesting that intuitive judgments arise from non-conscious associations between environmental cues and outcomes based on prior experience. This aligns with Fox's (2022) description of intuition as "a very real process where the brain makes use of past experiences, along with internal signals and cues from the environment, to help us make a decision."</p>
+                <p>Mega et al. (2015) challenged strict dual-system interpretations through neuroimaging research, finding that intuitive and deliberative judgments recruited overlapping neural networks. This suggests that rather than separate systems, intuition and analysis may represent different modes of operation within the same neural architecture—a finding with significant implications for computational implementations.</p>
+            </section>
+
+            <section id="continuity-discontinuity">
+                <h3>2.2 Resolving the Continuity-Discontinuity Debate</h3>
+                <p>The apparent contradiction between continuity models (Bowers et al., 1990) and discontinuity models (Ohlsson, 1992) of insight can be reconciled through a more nuanced understanding of problem types and processing dynamics. Zander et al. (2016) distinguish between convergent problems, where the solution emerges through gradual accumulation of associative activations, and divergent problems, which require representational restructuring.</p>
+                <p>This distinction suggests that both continuous and discontinuous processes coexist in human cognition, with their relative contributions depending on problem characteristics. For convergent problems, intuition operates through spreading activation in semantic networks, gradually strengthening relevant associations until they cross a threshold of conscious awareness. For divergent problems, intuition may still generate initial hypotheses, but these must be subjected to restructuring processes when they lead to impasses.</p>
+                <p>This integrated view provides a more complete foundation for computational implementation than either model alone. A comprehensive DIBR system must incorporate both gradual accumulation mechanisms for convergent problems and restructuring capabilities for divergent problems.</p>
+            </section>
+
+            <section id="ai-reasoning">
+                <h3>2.3 Current Approaches to AI Reasoning</h3>
+                <p>Current approaches to reasoning in AI systems can be broadly categorized into rule-based systems, statistical learning methods, and neural network approaches. Traditional AI relied heavily on symbolic reasoning through explicit rules and logic (Newell & Simon, 1976), while modern deep learning approaches emphasize learning patterns from data without explicit rule encoding (LeCun et al., 2015).</p>
+                <p>Large language models represent the state-of-the-art in AI reasoning capabilities. These models employ transformer architectures (Vaswani et al., 2017) that learn to predict text based on vast corpora of human-written material. Recent work has shown that LLMs can perform complex reasoning tasks through techniques such as chain-of-thought prompting (Wei et al., 2022), self-consistency (Wang et al., 2022), and tree-of-thought reasoning (Yao et al., 2023).</p>
+                <p>These approaches have improved logical reasoning capabilities, but they fundamentally rely on explicit, step-by-step processing that differs from human intuition. Chain-of-thought prompting, for instance, emulates deliberate System 2 reasoning rather than rapid System 1 intuition. While effective for well-structured problems, these methods still struggle with problems requiring creative leaps or restructuring of knowledge (Marcus & Davis, 2019).</p>
+            </section>
+
+            <section id="gap">
+                <h3>2.4 The Gap Between Current AI and Human Cognition</h3>
+                <p>The literature reveals a significant gap between human cognitive capabilities and current AI systems. While humans seamlessly integrate intuitive and analytical thinking, current AI systems primarily rely on pattern recognition trained on historical data without a clear analog to human intuition's dynamic, context-sensitive operation.</p>
+                <p>This gap is particularly evident in three areas:</p>
+                <ol>
+                    <li><strong>Novelty handling:</strong> Humans can leverage partial pattern matches to generate plausible hypotheses in entirely new situations, while LLMs struggle when confronted with problems outside their training distribution.</li>
+                    <li><strong>Cognitive flexibility:</strong> Humans can dynamically shift between intuitive and analytical processing modes based on task demands and feedback, while current AI systems lack this metacognitive capability.</li>
+                    <li><strong>Representational restructuring:</strong> Humans can overcome initial misleading problem representations through insight, while LLMs typically remain constrained by their initial approach to a problem.</li>
+                </ol>
+                <p>Addressing these gaps requires implementing a computational analog to intuition that can generate preliminary hypotheses based on partial pattern matching, dynamically integrate with analytical reasoning, and enable representational restructuring when intuitive approaches lead to impasses.</p>
+            </section>
+        </section>
+
+        <section id="theoretical-framework">
+            <h2>3. Theoretical Framework for Dynamic Intuition-Based Reasoning</h2>
+
+            <section id="formal-definition">
+                <h3>3.1 Formal Definition of Computational Intuition</h3>
+                <p>To move beyond abstract descriptions, I formally define computational intuition as:</p>
+                <p><em>A rapid pattern-matching process that generates preliminary hypotheses based on partial similarities between a current problem state and distributed representations of prior experiences, operating below the threshold of explicit representation but biasing subsequent processing toward potentially relevant solution paths.</em></p>
+                <p>This definition has several key components:</p>
+                <ol>
+                    <li><strong>Rapid pattern-matching:</strong> Computational intuition must operate with minimal computational overhead, providing quick initial judgments.</li>
+                    <li><strong>Partial similarities:</strong> Unlike exact matching, intuition identifies useful similarities even when problems differ in many respects from previously encountered situations.</li>
+                    <li><strong>Distributed representations:</strong> Intuition draws on patterns distributed across many experiences rather than retrieving specific episodes.</li>
+                    <li><strong>Below explicit representation:</strong> The patterns activated are not fully articulated but exist as activation patterns that bias subsequent processing.</li>
+                    <li><strong>Biasing subsequent processing:</strong> Intuition does not directly solve problems but guides analytical processes toward promising solution paths.</li>
+                </ol>
+                <p>This definition provides a concrete basis for implementing computational intuition in AI systems while maintaining alignment with cognitive science research.</p>
+            </section>
+
+            <section id="architectural-specifications">
+                <h3>3.2 Architectural Specifications</h3>
+                <p>The DIBR architecture consists of four primary components, each with specific computational functions:</p>
+                <ol>
+                    <li>
+                        <strong>Intuition Generator:</strong>
+                        <ul>
+                            <li><strong>Core mechanism:</strong> Parallel activation of distributed semantic representations based on problem features</li>
+                            <li><strong>Implementation:</strong> Modified attention mechanism that prioritizes distant semantic associations with high utility in past problem-solving</li>
+                            <li><strong>Output format:</strong> Probability distribution over possible solution approaches with associated confidence measures</li>
+                            <li><strong>Computational budget:</strong> Limited to 10-20% of overall processing resources to maintain speed advantage</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Analytical Reasoner:</strong>
+                        <ul>
+                            <li><strong>Core mechanism:</strong> Sequential logical inference guided by intuitive hypotheses</li>
+                            <li><strong>Implementation:</strong> Chain-of-thought reasoning with enhanced verification procedures</li>
+                            <li><strong>Output format:</strong> Explicit solution steps with logical justifications</li>
+                            <li><strong>Computational budget:</strong> Variable allocation based on problem complexity and intuition confidence</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Dynamic Integrator:</strong>
+                        <ul>
+                            <li><strong>Core mechanism:</strong> Metacognitive regulation of intuitive-analytical balance</li>
+                            <li><strong>Implementation:</strong> Reinforcement-learned policy that optimizes processing allocation based on problem type, novelty, and feedback history</li>
+                            <li><strong>Output format:</strong> Control signals modulating the relative influence of intuitive and analytical outputs</li>
+                            <li><strong>Performance metrics:</strong> Efficiency (time to solution), accuracy, and novelty robustness</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Memory Augmentation System:</strong>
+                        <ul>
+                            <li><strong>Core mechanism:</strong> Selective enhancement of patterns that led to successful solutions</li>
+                            <li><strong>Implementation:</strong> Hebbian-inspired weight adjustments strengthening connections between problem features and successful solution approaches</li>
+                            <li><strong>Storage structure:</strong> Hierarchical representation with different levels of abstraction enabling transfer across domains</li>
+                            <li><strong>Forgetting mechanism:</strong> Gradient-based decay of unsuccessful patterns to prevent overfitting</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p>These components interact through precisely defined interfaces:</p>
+                <ul>
+                    <li>Intuition Generator → Analytical Reasoner: Provides hypothesis distribution with confidence measures</li>
+                    <li>Analytical Reasoner → Intuition Generator: Provides feedback on hypothesis utility</li>
+                    <li>Dynamic Integrator ↔ Both Reasoners: Controls information flow and processing allocation</li>
+                    <li>Memory Augmentation ↔ All Components: Updates and retrieves pattern associations based on success/failure</li>
+                </ul>
+            </section>
+
+            <section id="processing-dynamics">
+                <h3>3.3 Processing Dynamics for Different Problem Types</h3>
+                <p>The DIBR framework handles different problem types through distinct processing dynamics:</p>
+                <p><strong>For convergent problems</strong> (where solutions emerge through associative activation):</p>
+                <ol>
+                    <li>Intuition Generator rapidly activates distributed patterns associated with problem features</li>
+                    <li>Activation converges on high-confidence hypotheses as more problem features are processed</li>
+                    <li>Analytical Reasoner verifies highest-confidence hypotheses through explicit inference</li>
+                    <li>Successful solutions strengthen associative patterns through Memory Augmentation</li>
+                </ol>
+                <p><strong>For divergent problems</strong> (requiring representational restructuring):</p>
+                <ol>
+                    <li>Initial intuitive hypotheses are generated and analytically pursued</li>
+                    <li>If progress stalls (impasse detection), Dynamic Integrator triggers restructuring processes</li>
+                    <li>Restructuring involves:
+                        <ul>
+                            <li>a. Constraint relaxation: Identifying and temporarily suspending limiting assumptions</li>
+                            <li>b. Distant association activation: Increasing attention to semantically distant connections</li>
+                            <li>c. Perspective shifting: Reconfiguring problem representation using alternative frameworks</li>
+                        </ul>
+                    </li>
+                    <li>Post-restructuring, new intuitive hypotheses are generated and analytically pursued</li>
+                    <li>Successful restructurings are encoded in memory as higher-order patterns</li>
+                </ol>
+                <p><strong>For novel problems</strong> (outside previous experience):</p>
+                <ol>
+                    <li>Feature decomposition: Breaking the problem into component features</li>
+                    <li>Analogical mapping: Identifying partial matches with previous problems</li>
+                    <li>Compositional recombination: Generating novel hypotheses by combining solution fragments</li>
+                    <li>Rapid hypothesis testing: Evaluating generated hypotheses through simulation</li>
+                    <li>Incremental refinement: Using feedback to adjust hypotheses</li>
+                </ol>
+                <p>These processing dynamics demonstrate how DIBR can integrate continuity and discontinuity models of problem-solving while addressing the distinct challenges of different problem types.</p>
+            </section>
+        </section>
+
+        <section id="implementation">
+            <h2>4. Implementation Approaches</h2>
+
+            <section id="neural-architecture">
+                <h3>4.1 Neural Architecture Specifications</h3>
+                <p>Implementing DIBR requires architectural innovations beyond standard LLM designs. I propose several concrete implementation approaches:</p>
+                <ol>
+                    <li>
+                        <strong>Modified Transformer Architecture with Dual Attention Mechanisms:</strong>
+                        <ul>
+                            <li><strong>Standard attention heads:</strong> Implement analytical reasoning through conventional self-attention</li>
+                            <li><strong>Intuition attention heads:</strong> Operate with:
+                                <ul>
+                                    <li>Lower temperature sampling to encourage exploration of distant associations</li>
+                                    <li>Sparse activation patterns focusing on high-utility features</li>
+                                    <li>Reduced computational depth (fewer layers) for speed</li>
+                                </ul>
+                            </li>
+                            <li><strong>Gating mechanism:</strong> Learned function controlling information flow between attention types</li>
+                            <li><strong>Technical advantage:</strong> Maintains compatibility with existing transformer architectures while enabling dual-process operation</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Hierarchical Latent Spaces for Representational Restructuring:</strong>
+                        <ul>
+                            <li><strong>Implementation:</strong> Variational autoencoder layers integrated with transformer blocks</li>
+                            <li><strong>Function:</strong> Enable manipulation of problem representations at multiple levels of abstraction</li>
+                            <li><strong>Technical specification:</strong>
+                                <ul>
+                                    <li>Lower-level latent spaces capture surface features</li>
+                                    <li>Higher-level spaces capture abstract problem structures</li>
+                                    <li>Restructuring operations modify higher-level representations</li>
+                                </ul>
+                            </li>
+                            <li><strong>Advantage:</strong> Provides explicit mechanism for representational change during impasses</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Neuromodulatory-Inspired Regulation:</strong>
+                        <ul>
+                            <li><strong>Implementation:</strong> Specialized networks monitoring confidence, uncertainty, and solution progress</li>
+                            <li><strong>Function:</strong> Dynamically adjust:
+                                <ul>
+                                    <li>Learning rates based on solution success</li>
+                                    <li>Exploration-exploitation balance based on problem novelty</li>
+                                    <li>Activation thresholds based on confidence</li>
+                                </ul>
+                            </li>
+                            <li><strong>Technical inspiration:</strong> Biological neuromodulators (dopamine, norepinephrine) that regulate neural plasticity and attention</li>
+                            <li><strong>Advantage:</strong> Enables context-sensitive adaptation of processing without external supervision</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Memory-Augmented Neural Networks with Structured Forgetting:</strong>
+                        <ul>
+                            <li><strong>Implementation:</strong> External memory matrices with controlled read/write operations</li>
+                            <li><strong>Memory organization:</strong>
+                                <ul>
+                                    <li>Episodic buffer storing recent problem-solution pairs</li>
+                                    <li>Semantic memory storing abstracted patterns</li>
+                                    <li>Procedural memory storing successful restructuring operations</li>
+                                </ul>
+                            </li>
+                            <li><strong>Update mechanism:</strong> Hebbian-inspired strengthening with importance-weighted retention</li>
+                            <li><strong>Forgetting mechanism:</strong> Gradient-based decay with preservation of high-utility patterns</li>
+                            <li><strong>Advantage:</strong> Enables long-term retention of successful intuitive patterns while preventing overfitting</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="training-methodology">
+                <h3>4.2 Training Methodology and Curriculum Design</h3>
+                <p>Training a DIBR system requires specialized methodologies beyond standard supervised learning:</p>
+                <ol>
+                    <li>
+                        <strong>Three-Phase Curriculum for Intuition Development:</strong>
+                        <ul>
+                            <li><strong>Phase 1: Foundation Training</strong>
+                                <ul>
+                                    <li>Objective: Learn basic pattern recognition on standard datasets</li>
+                                    <li>Method: Supervised learning with ground-truth solutions</li>
+                                    <li>Success metric: Standard accuracy measures</li>
+                                </ul>
+                            </li>
+                            <li><strong>Phase 2: Intuition Bootstrapping</strong>
+                                <ul>
+                                    <li>Objective: Develop rapid pattern-matching capabilities</li>
+                                    <li>Method: Time-constrained prediction tasks with partial information</li>
+                                    <li>Success metric: Accuracy under severe time/information constraints</li>
+                                </ul>
+                            </li>
+                            <li><strong>Phase 3: Transfer Challenge</strong>
+                                <ul>
+                                    <li>Objective: Develop cross-domain intuitive capabilities</li>
+                                    <li>Method: Zero-shot and few-shot learning on increasingly distant domains</li>
+                                    <li>Success metric: Transfer performance relative to specialized models</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Metacognitive Reinforcement Learning:</strong>
+                        <ul>
+                            <li><strong>Policy objective:</strong> Optimize allocation of processing resources between intuitive and analytical components</li>
+                            <li><strong>State space:</strong> Problem features, confidence measures, progress indicators</li>
+                            <li><strong>Action space:</strong> Continuous control of attention allocation, restructuring triggers, and hypothesis selection</li>
+                            <li><strong>Reward function:</strong> Composite of solution accuracy, efficiency, and novelty handling</li>
+                            <li><strong>Implementation technique:</strong> Proximal Policy Optimization with intrinsic motivation rewards</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Contrastive Learning for Representational Restructuring:</strong>
+                        <ul>
+                            <li><strong>Training objective:</strong> Learn useful problem reformulations</li>
+                            <li><strong>Method:</strong> Present same problems in multiple framings</li>
+                            <li><strong>Contrastive loss:</strong> Minimize distance between representations of differently framed but equivalent problems</li>
+                            <li><strong>Advantage:</strong> Enables automatic identification of underlying problem structures despite surface differences</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Human-AI Collaborative Training:</strong>
+                        <ul>
+                            <li><strong>Setup:</strong> Human experts collaborate with developing system on challenging problems</li>
+                            <li><strong>Feedback mechanisms:</strong>
+                                <ul>
+                                    <li>Explicit evaluation of system-generated intuitive hypotheses</li>
+                                    <li>Demonstration of effective restructuring approaches</li>
+                                    <li>Comparative analysis of human vs. AI solution paths</li>
+                                </ul>
+                            </li>
+                            <li><strong>Implementation:</strong> Active learning framework prioritizing problems with maximum information gain</li>
+                            <li><strong>Advantage:</strong> Incorporates human intuitive expertise while avoiding simple imitation</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="benchmarking">
+                <h3>4.3 Benchmarking and Evaluation Framework</h3>
+                <p>I propose a comprehensive evaluation framework specifically designed to assess intuitive capabilities:</p>
+                <ol>
+                    <li>
+                        <strong>Intuition-Specific Benchmark Suite:</strong>
+                        <ul>
+                            <li><strong>Convergent Tasks:</strong> Semantic coherence judgments, remote associate problems, pattern completion</li>
+                            <li><strong>Divergent Tasks:</strong> Insight problems, creative analogy formation, constraint satisfaction with misleading initial representations</li>
+                            <li><strong>Hybrid Tasks:</strong> Problems solvable through either route with efficiency differences</li>
+                            <li><strong>Measurement focus:</strong> Solution accuracy, time to solution, solution path efficiency</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Novelty Gradient Evaluation:</strong>
+                        <ul>
+                            <li><strong>Methodology:</strong> Systematically increasing distance from training distribution</li>
+                            <li><strong>Distance metrics:</strong>
+                                <ul>
+                                    <li>Feature overlap with training examples</li>
+                                    <li>Structural similarity to known problem types</li>
+                                    <li>Required inference steps beyond training examples</li>
+                                </ul>
+                            </li>
+                            <li><strong>Performance visualization:</strong> Degradation curves plotting performance against novelty distance</li>
+                            <li><strong>Comparative standard:</strong> Human performance on same novelty gradient</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Process-Tracing Metrics:</strong>
+                        <ul>
+                            <li><strong>Attention flow analysis:</strong> Track allocation of attention across problem features</li>
+                            <li><strong>Hypothesis evolution tracking:</strong> Measure changes in generated hypotheses over time</li>
+                            <li><strong>Restructuring event detection:</strong> Identify and quantify representational changes</li>
+                            <li><strong>Comparison standard:</strong> Protocol analysis of human problem-solving on same tasks</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Ablation Studies for Component Contribution:</strong>
+                        <ul>
+                            <li><strong>Intuition Generator removal:</strong> Measure performance with purely analytical processing</li>
+                            <li><strong>Restructuring mechanism disabling:</strong> Measure performance on divergent problems</li>
+                            <li><strong>Memory Augmentation limitation:</strong> Measure transfer capabilities with restricted memory</li>
+                            <li><strong>Objective:</strong> Quantify contribution of each DIBR component to overall performance</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Adversarial Challenge Set:</strong>
+                        <ul>
+                            <li><strong>Misleading problems:</strong> Designed to trigger incorrect intuitions</li>
+                            <li><strong>Restructuring-dependent problems:</strong> Solvable only through representational change</li>
+                            <li><strong>Time-pressured scenarios:</strong> Requiring optimal intuitive-analytical balance</li>
+                            <li><strong>Evaluation focus:</strong> Recovery from initial errors, adaptation to feedback</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p>This comprehensive evaluation framework provides specific, measurable criteria for assessing DIBR implementations while enabling detailed comparison with human performance.</p>
+            </section>
+        </section>
+
+        <section id="experimental-validation">
+            <h2>5. Experimental Validation Methodology</h2>
+             <p>To move beyond theoretical proposals, I outline a concrete experimental roadmap for validating the DIBR framework:</p>
+
+            <section id="proof-of-concept">
+                <h3>5.1 Proof-of-Concept Studies</h3>
+                <ol>
+                    <li>
+                        <strong>Semantic Coherence Detection Experiment:</strong>
+                        <ul>
+                            <li><strong>Objective:</strong> Demonstrate basic intuitive capabilities</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Train modified transformer with dual-attention mechanism on corpus of semantic associations</li>
+                                    <li>Test on Bowers-style coherence judgment tasks with time constraints</li>
+                                    <li>Compare performance against standard transformers and human baseline</li>
+                                </ul>
+                            </li>
+                            <li><strong>Success criteria:</strong> Above-chance coherence detection without explicit association identification</li>
+                            <li><strong>Significance:</strong> Establishes basic intuition capability similar to human implicit knowledge</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Constraint Relaxation Experiment:</strong>
+                        <ul>
+                            <li><strong>Objective:</strong> Validate restructuring mechanisms</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Present system with classic insight problems (e.g., nine-dot problem, candle problem)</li>
+                                    <li>Track attention patterns before and after impasse points</li>
+                                    <li>Analyze relationship between representation changes and solution discovery</li>
+                                </ul>
+                            </li>
+                            <li><strong>Success criteria:</strong> Detection of constraint relaxation events correlated with solution</li>
+                            <li><strong>Significance:</strong> Demonstrates computational implementation of insight mechanisms</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Transfer Learning Experiment:</strong>
+                        <ul>
+                            <li><strong>Objective:</strong> Assess intuitive transfer across domains</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Train system on problem set in domain A</li>
+                                    <li>Test on structurally similar but superficially different problems in domain B</li>
+                                    <li>Compare with baseline models without intuition mechanisms</li>
+                                </ul>
+                            </li>
+                            <li><strong>Success criteria:</strong> Superior zero-shot performance on transfer tasks</li>
+                            <li><strong>Significance:</strong> Demonstrates intuition's value for novel problem discovery</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="comparative-studies">
+                <h3>5.2 Comparative Studies with Human Problem-Solvers</h3>
+                <ol>
+                    <li>
+                        <strong>Process-Tracing Comparison:</strong>
+                        <ul>
+                            <li><strong>Objective:</strong> Compare DIBR processing dynamics with human cognition</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Collect human eye-tracking and verbal protocol data on selected problems</li>
+                                    <li>Track DIBR attention patterns and hypothesis generation</li>
+                                    <li>Compare temporal dynamics of problem exploration</li>
+                                </ul>
+                            </li>
+                            <li><strong>Analysis focus:</strong> Similarities/differences in impasse detection, restructuring, and solution discovery</li>
+                            <li><strong>Significance:</strong> Validates cognitive plausibility of DIBR implementation</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Intervention Study:</strong>
+                        <ul>
+                            <li><strong>Objective:</strong> Test causal role of intuition and restructuring</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Systematically manipulate availability of intuitive processing and restructuring mechanisms</li>
+                                    <li>Measure performance changes across problem types</li>
+                                    <li>Compare with human performance under cognitive load conditions</li>
+                                </ul>
+                            </li>
+                            <li><strong>Hypotheses:</strong>
+                                <ul>
+                                    <li>Intuition restrictions will impair performance on time-constrained tasks</li>
+                                    <li>Restructuring restrictions will impair performance on insight problems</li>
+                                </ul>
+                            </li>
+                            <li><strong>Significance:</strong> Establishes necessary role of both mechanisms</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Collaborative Problem-Solving:</strong>
+                        <ul>
+                            <li><strong>Objective:</strong> Assess human-DIBR team performance</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Form human-DIBR, human-human, and DIBR-only teams</li>
+                                    <li>Present complex problems requiring both intuition and analysis</li>
+                                    <li>Measure solution quality, time, and team interaction patterns</li>
+                                </ul>
+                            </li>
+                            <li><strong>Success criteria:</strong> Human-DIBR teams perform better than either alone</li>
+                            <li><strong>Significance:</strong> Demonstrates complementary capabilities and practical utility</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="longitudinal-study">
+                <h3>5.3 Longitudinal Learning Study</h3>
+                 <ol>
+                     <li>
+                         <strong>Intuition Development Tracking:</strong>
+                         <ul>
+                            <li><strong>Objective:</strong> Assess development of intuitive capabilities over time</li>
+                            <li><strong>Methodology:</strong>
+                                <ul>
+                                    <li>Present increasingly challenging problems requiring intuitive leaps</li>
+                                    <li>Track changes in:
+                                        <ul>
+                                            <li>Response time for intuitive judgments</li>
+                                            <li>Accuracy of initial hypotheses</li>
+                                            <li>Transfer across problem domains</li>
+                                        </ul>
+                                    </li>
+                                    <li>Compare learning curves with baseline models</li>
+                                </ul>
+                            </li>
+                            <li><strong>Duration:</strong> Minimum 3-month training period with weekly assessments</li>
+                            <li><strong>Significance:</strong> Demonstrates acquisition of intuitive expertise similar to human development</li>
+                        </ul>
+                    </li>
+                 </ol>
+                <p>These experimental approaches provide a clear roadmap for validating DIBR implementations, moving from basic proof-of-concept to sophisticated comparative studies with human problem-solvers.</p>
+            </section>
+        </section>
+
+        <section id="implications">
+            <h2>6. Implications, Ethical Considerations, and Limitations</h2>
+
+            <section id="agi-development">
+                <h3>6.1 Implications for AGI Development</h3>
+                <p>The DIBR framework has several important implications for AGI development:</p>
+                <ol>
+                    <li><strong>Path Beyond Current LLMs:</strong> DIBR offers a potential path beyond the limitations of current LLMs by enabling them to handle truly novel problems through intuitive pattern recognition and representational restructuring—capabilities essential for general intelligence.</li>
+                    <li><strong>Reduced Computational Requirements:</strong> By leveraging intuitive shortcuts for appropriate problems, DIBR systems might achieve higher performance with fewer computational resources compared to brute-force analytical approaches, addressing sustainability concerns in AI development.</li>
+                    <li><strong>Improved Explainability:</strong> The explicit separation of intuitive and analytical processes could improve system explainability by making clear which components of reasoning emerged from intuition versus explicit logic, addressing a key limitation of current black-box models.</li>
+                    <li><strong>Cognitive Alignment:</strong> DIBR architectures more closely mirror human cognitive processes, potentially facilitating better human-AI collaboration through shared problem-solving approaches and complementary strengths.</li>
+                </ol>
+            </section>
+
+            <section id="ethical-considerations">
+                <h3>6.2 Ethical Considerations and Safeguards</h3>
+                <p>The development of more human-like reasoning systems raises important ethical considerations that must be addressed:</p>
+                <ol>
+                    <li>
+                        <strong>Intuition Bias Amplification:</strong>
+                        <ul>
+                            <li><strong>Concern:</strong> Intuitive processes may amplify biases present in training data more severely than explicit reasoning</li>
+                            <li><strong>Safeguard implementation:</strong>
+                                <ul>
+                                    <li>Bias detection mechanisms comparing intuitive and analytical outputs</li>
+                                    <li>Adversarial fairness training specifically targeting intuition components</li>
+                                    <li>Regular auditing of intuitive responses across demographic dimensions</li>
+                                </ul>
+                            </li>
+                            <li><strong>Technical approach:</strong> Implement counterfactual fairness constraints in the Dynamic Integrator</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Transparency and Accountability:</strong>
+                        <ul>
+                            <li><strong>Concern:</strong> Intuitive processes are inherently less transparent than analytical reasoning</li>
+                            <li><strong>Safeguard implementation:</strong>
+                                <ul>
+                                    <li>Develop specialized explainability tools for intuitive components</li>
+                                    <li>Implement automatic detection of high-risk intuitive decisions</li>
+                                    <li>Maintain audit trails of intuitive-analytical interactions</li>
+                                </ul>
+                            </li>
+                            <li><strong>Technical approach:</strong> Create visualization systems that trace intuitive activations to source patterns</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Value Alignment in Intuitive Judgments:</strong>
+                        <ul>
+                            <li><strong>Concern:</strong> Intuition may encode values incompatible with human welfare</li>
+                            <li><strong>Safeguard implementation:</strong>
+                                <ul>
+                                    <li>Value-sensitive design principles in intuition mechanisms</li>
+                                    <li>Human oversight of value-laden intuitive judgments</li>
+                                    <li>Explicit incorporation of ethical constraints in Memory Augmentation</li>
+                                </ul>
+                            </li>
+                            <li><strong>Technical approach:</strong> Implement constitutional AI principles in the Dynamic Integrator</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Dual-Use Risks:</strong>
+                        <ul>
+                            <li><strong>Concern:</strong> Enhanced problem-solving capabilities could be misused</li>
+                            <li><strong>Safeguard implementation:</strong>
+                                <ul>
+                                    <li>Staged deployment focusing on beneficial applications</li>
+                                    <li>Domain-specific safety constraints</li>
+                                    <li>Collaborative governance with multiple stakeholders</li>
+                                </ul>
+                            </li>
+                            <li><strong>Technical approach:</strong> Develop domain-specific safety boundaries for intuitive exploration</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+
+            <section id="limitations">
+                <h3>6.3 Limitations and Technical Challenges</h3>
+                <p>Several significant challenges must be addressed:</p>
+                <ol>
+                    <li>
+                        <strong>Computational Representation of Intuition:</strong>
+                        <ul>
+                            <li><strong>Challenge:</strong> Translating phenomenological descriptions of intuition into precise computational mechanisms</li>
+                            <li><strong>Proposed approach:</strong> Iterative refinement through cognitive science collaboration</li>
+                            <li><strong>Success metric:</strong> Convergence of computational and psychological models</li>
+                            <li><strong>Mitigation strategy:</strong> Begin with well-defined subsets of intuitive processing</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Training Data Requirements:</strong>
+                        <ul>
+                            <li><strong>Challenge:</strong> Developing robust intuitive capabilities may require even larger and more diverse training datasets</li>
+                            <li><strong>Proposed approach:</strong> Synthetic data generation focusing on structural variations</li>
+                            <li><strong>Success metric:</strong> Performance on out-of-distribution problems</li>
+                            <li><strong>Mitigation strategy:</strong> Domain-specific intuition development before generalization</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Evaluation Complexity:</strong>
+                        <ul>
+                            <li><strong>Challenge:</strong> Assessing the quality of intuitive processing is inherently difficult</li>
+                            <li><strong>Proposed approach:</strong> Multi-metric evaluation framework with process measures</li>
+                            <li><strong>Success metric:</strong> Correlation between process measures and outcome quality</li>
+                            <li><strong>Mitigation strategy:</strong> Human expert validation of intuitive hypotheses</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Integration Overhead:</strong>
+                        <ul>
+                            <li><strong>Challenge:</strong> Managing dual processing streams may introduce computational inefficiencies</li>
+                            <li><strong>Proposed approach:</strong> Adaptive allocation based on problem characteristics</li>
+                            <li><strong>Success metric:</strong> Net efficiency gain across diverse problem sets</li>
+                            <li><strong>Mitigation strategy:</strong> Optimize for complementary strengths rather than redundant processing</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Catastrophic Forgetting in Intuition Development:</strong>
+                        <ul>
+                            <li><strong>Challenge:</strong> New learning may disrupt previously developed intuitive capabilities</li>
+                            <li><strong>Proposed approach:</strong> Elastic weight consolidation for stability-plasticity balance</li>
+                            <li><strong>Success metric:</strong> Retention of performance on earlier problem types</li>
+                            <li><strong>Mitigation strategy:</strong> Rehearsal of diverse problem types during training</li>
+                        </ul>
+                    </li>
+                </ol>
+            </section>
+        </section>
+
+        <section id="conclusion">
+            <h2>7. Conclusion and Future Directions</h2>
+            <p>This paper has presented a theoretical framework for Dynamic Intuition-Based Reasoning (DIBR) as an approach to enhancing LLMs toward AGI capabilities. By implementing a computational analog to human intuition that operates in concert with analytical reasoning processes, DIBR offers the potential for more flexible problem-solving in novel domains.</p>
+            <p>The framework resolves the apparent tension between continuity and discontinuity models of intuition and insight by accommodating both processes within a unified architecture. For convergent problems, DIBR leverages gradual accumulation of semantic activations; for divergent problems, it enables representational restructuring when intuitive approaches lead to impasses.</p>
+            <p>The proposed implementation approaches—including dual-attention mechanisms, hierarchical latent spaces, and neuromodulatory-inspired regulation—provide concrete technical specifications that can guide development efforts. The comprehensive evaluation framework and experimental validation methodology offer clear metrics for assessing progress.</p>
+            <p>While significant challenges remain, particularly in the computational representation of intuition and the training requirements for robust intuitive capabilities, the DIBR framework provides a promising direction for advancing toward artificial general intelligence.</p>
+            <p>Future research directions include:</p>
+            <ol>
+                <li>
+                    <strong>Neuroscience-Informed Implementations:</strong>
+                    <ul>
+                        <li>Developing computational models that more closely align with neural mechanisms of intuition</li>
+                        <li>Incorporating insights from predictive processing and active inference frameworks</li>
+                        <li>Exploring the role of embodiment in intuitive knowledge acquisition</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Multi-Modal Intuition:</strong>
+                    <ul>
+                        <li>Extending intuitive capabilities beyond language to visual, auditory, and multimodal domains</li>
+                        <li>Investigating cross-modal intuitive transfer</li>
+                        <li>Developing unified representation spaces that enable intuitive leaps across modalities</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Developmental Models of Intuition:</strong>
+                    <ul>
+                        <li>Implementing curricula that mimic human developmental stages of intuitive acquisition</li>
+                        <li>Studying the emergence of intuitive capabilities through self-supervised exploration</li>
+                        <li>Creating computational models of expertise development in specific domains</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Collective Intuition:</strong>
+                    <ul>
+                        <li>Exploring how multiple DIBR systems might collectively develop enhanced intuitive capabilities</li>
+                        <li>Investigating knowledge transfer between specialized intuitive systems</li>
+                        <li>Developing frameworks for human-AI collective intelligence leveraging complementary intuitive strengths</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Ethical Frameworks for Intuition Development:</strong>
+                    <ul>
+                        <li>Creating governance structures for systems with enhanced intuitive capabilities</li>
+                        <li>Developing evaluation methods for aligning intuitive judgments with human values</li>
+                        <li>Exploring the implications of intuitive AI for human autonomy and decision-making</li>
+                    </ul>
+                </li>
+            </ol>
+            <p>The path toward AGI likely requires moving beyond purely analytical or purely pattern-recognition approaches to intelligence. DIBR represents a promising direction by integrating these capabilities in a manner inspired by human cognition—where intuition and analysis work together to solve problems neither could address alone. By providing concrete computational specifications while maintaining alignment with cognitive science research, this framework offers both theoretical insight and practical guidance for the next generation of artificial intelligence systems.</p>
+        </section>
+
+        <section id="references" class="references">
+            <h2>References</h2>
+             <div class="reference-item">Bowers, K. S., Regehr, G., Balthazard, C., & Parker, K. (1990). Intuition in the context of discovery. <em>Cognitive Psychology, 22</em>(1), 72-110.</div>
+             <div class="reference-item">Bowers, K. S., Farvolden, P., & Mermigis, L. (1995). Intuitive antecedents of insight. In S. M. Smith, T. B. Ward, & R. A. Finke (Eds.), <em>The creative cognition approach</em> (pp. 27-51). MIT Press.</div>
+             <div class="reference-item">Chowdhery, A., Narang, S., Devlin, J., Bosma, M., Mishra, G., Roberts, A., ... & Fiedel, N. (2022). PaLM: Scaling language modeling with pathways. <em>arXiv preprint arXiv:2204.02311</em>.</div>
+             <div class="reference-item">Cranford, E. A., & Moss, J. (2012). Is insight always the same? A protocol analysis of insight in compound remote associate problems. <em>The Journal of Problem Solving, 4</em>(2), 128-153.</div>
+             <div class="reference-item">Danek, A. H., Fraps, T., von Müller, A., Grothe, B., & Öllinger, M. (2013). Aha! experiences leave a mark: facilitated recall of insight solutions. <em>Psychological Research, 77</em>(5), 659-669.</div>
+             <div class="reference-item">Evans, J. S. B. T., & Stanovich, K. E. (2013). Dual-process theories of higher cognition: Advancing the debate. <em>Perspectives on Psychological Science, 8</em>(3), 223-241.</div>
+             <div class="reference-item">Fedor, A., Szathmáry, E., & Öllinger, M. (2015). Problem solving stages in the five square problem. <em>Frontiers in Psychology, 6</em>, 1050.</div>
+             <div class="reference-item">Fox, E. (2022). Gut feelings: How does intuition work, anyway? <em>Literary Hub</em>.</div>
+             <div class="reference-item">Graves, A., Wayne, G., Reynolds, M., Harley, T., Danihelka, I., Grabska-Barwińska, A., ... & Hassabis, D. (2016). Hybrid computing using a neural network with dynamic external memory. <em>Nature, 538</em>(7626), 471-476.</div>
+             <div class="reference-item">Kahneman, D. (2011). <em>Thinking, fast and slow</em>. Farrar, Straus and Giroux.</div>
+             <div class="reference-item">Keren, G., & Schul, Y. (2009). Two is not always better than one: A critical evaluation of two-system theories. <em>Perspectives on Psychological Science, 4</em>(6), 533-550.</div>
+             <div class="reference-item">Kizilirmak, J. M., Thuerich, H., Folta-Schoofs, K., Schott, B. H., & Richardson-Klavehn, A. (2016). Neural correlates of learning from induced insight: A case for reward-based episodic encoding. <em>Frontiers in Psychology, 7</em>, 1693.</div>
+             <div class="reference-item">Klein, G., & Jarosz, A. (2011). A naturalistic study of insight. <em>Journal of Cognitive Engineering and Decision Making, 5</em>(4), 335-351.</div>
+             <div class="reference-item">Knoblich, G., & Öllinger, M. (2006). Einsicht und Umstrukturierung beim Problemlösen [Insight and restructuring in problem solving]. In J. Funke (Ed.), <em>Denken und Problemlösen</em> (pp. 3-86). Hogrefe.</div>
+             <div class="reference-item">Kounios, J., & Beeman, M. (2014). The cognitive neuroscience of insight. <em>Annual Review of Psychology, 65</em>, 71-93.</div>
+             <div class="reference-item">Kruglanski, A. W., & Gigerenzer, G. (2011). Intuitive and deliberate judgments are based on common principles. <em>Psychological Review, 118</em>(1), 97-109.</div>
+             <div class="reference-item">LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. <em>Nature, 521</em>(7553), 436-444.</div>
+             <div class="reference-item">Mahowald, K., Ivanova, A. A., Blank, I. A., Kanwisher, N., Tenenbaum, J. B., & Fedorenko, E. (2023). Dissociating language and thought in large language models: a cognitive perspective. <em>arXiv preprint arXiv:2301.06627</em>.</div>
+             <div class="reference-item">Marcus, G., & Davis, E. (2019). <em>Rebooting AI: Building artificial intelligence we can trust</em>. Pantheon.</div>
+             <div class="reference-item">Mega, L. F., Gigerenzer, G., & Volz, K. G. (2015). Do intuitive and deliberate judgments rely on two distinct neural systems? A case study in face processing. <em>Frontiers in Human Neuroscience, 9</em>, 456.</div>
+             <div class="reference-item">Mednick, S. (1962). The associative basis of the creative process. <em>Psychological Review, 69</em>(3), 220-232.</div>
+             <div class="reference-item">Metcalfe, J., & Wiebe, D. (1987). Intuition in insight and noninsight problem solving. <em>Memory & Cognition, 15</em>(3), 238-246.</div>
+             <div class="reference-item">Mitchell, M. (2021). Why AI is harder than we think. <em>arXiv preprint arXiv:2104.12871</em>.</div>
+             <div class="reference-item">Newell, A., & Simon, H. A. (1976). Computer science as empirical inquiry: Symbols and search. <em>Communications of the ACM, 19</em>(3), 113-126.</div>
+             <div class="reference-item">Ohlsson, S. (1992). Information-processing explanations of insight and related phenomena. <em>Advances in the Psychology of Thinking, 1</em>, 1-44.</div>
+             <div class="reference-item">Ohlsson, S. (2011). <em>Deep learning: How the mind overrides experience</em>. Cambridge University Press.</div>
+             <div class="reference-item">Öllinger, M., Jones, G., & Knoblich, G. (2008). Investigating the effect of mental set on insight problem solving. <em>Experimental Psychology, 55</em>(4), 269-282.</div>
+             <div class="reference-item">Öllinger, M., Jones, G., & Knoblich, G. (2014). The dynamics of search, impasse, and representational change provide a coherent explanation of difficulty in the nine-dot problem. <em>Psychological Research, 78</em>(2), 266-275.</div>
+             <div class="reference-item">OpenAI. (2023). GPT-4 Technical Report. <em>arXiv preprint arXiv:2303.08774</em>.</div>
+             <div class="reference-item">Reber, R., Ruch-Monachon, M. A., & Perrig, W. J. (2007). Decomposing intuitive components in a conceptual problem solving task. <em>Consciousness and Cognition, 16</em>(2), 294-309.</div>
+             <div class="reference-item">Sandkühler, S., & Bhattacharya, J. (2008). Deconstructing insight: EEG correlates of insightful problem solving. <em>PLoS ONE, 3</em>(1), e1459.</div>
+             <div class="reference-item">Topolinski, S., & Reber, R. (2010). Gaining insight into the "Aha" experience. <em>Current Directions in Psychological Science, 19</em>(6), 402-405.</div>
+             <div class="reference-item">Topolinski, S., & Strack, F. (2009). The architecture of intuition: Fluency and affect determine intuitive judgments of semantic and visual coherence and judgments of grammaticality in artificial grammar learning. <em>Journal of Experimental Psychology: General, 138</em>(1), 39-63.</div>
+             <div class="reference-item">Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., ... & Polosukhin, I. (2017). Attention is all you need. <em>Advances in Neural Information Processing Systems, 30</em>.</div>
+             <div class="reference-item">Volz, K. G., & Zander, T. (2014). Primed for intuition? <em>Neuroscience of Decision Making, 1</em>, 26-34.</div>
+             <div class="reference-item">Wang, X., Wei, J., Schuurmans, D., Le, Q., Chi, E., & Zhou, D. (2022). Self-consistency improves chain of thought reasoning in language models. <em>arXiv preprint arXiv:2203.11171</em>.</div>
+             <div class="reference-item">Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., ... & Zhou, D. (2022). Chain-of-thought prompting elicits reasoning in large language models. <em>Advances in Neural Information Processing Systems, 35</em>.</div>
+             <div class="reference-item">Yao, S., Yu, D., Zhao, J., Shafran, I., Griffiths, T. L., Xu, Y., & Shen, J. (2023). Tree of thoughts: Deliberate problem solving with large language models. <em>arXiv preprint arXiv:2305.10601</em>.</div>
+             <div class="reference-item">Zander, T., Öllinger, M., & Volz, K. G. (2016). Intuition and insight: Two processes that build on each other or fundamentally differ? <em>Frontiers in Psychology, 7</em>, 1395.</div>
+             <div class="reference-item">Zander, T., Horr, N. K., Bolte, A., & Volz, K. G. (2015). Intuitive decision making as a gradual process: investigating semantic intuition-based and reasoning-based approaches using drift diffusion modeling and fMRI. <em>Brain and Behavior, 6</em>(6), e00420.</div>
+        </section>
+
+        <section id="footer-notes" class="footer-notes">
+             <h3 id="notes-heading">Footnote Regarding Visualizations and Research Status</h3>
+             <p><strong>Note on Current Status and Visualizations:</strong></p>
+             <p>This paper presents a theoretical framework that is still under development. At present, visualizations are intentionally omitted from this draft as the experimental validation is ongoing. Test results and empirical data will be incorporated in subsequent versions. The theoretical concepts outlined here are promising but require further investigation and rigorous testing. This work is being shared in the spirit of open collaborative advancement toward open-source AGI development. Researchers are encouraged to build upon these ideas, conduct their own experiments, and contribute to the collective understanding of intuition-based reasoning systems. My hope is that by making these theoretical foundations available, we can accelerate progress in the field through distributed research efforts.</p>
+
+             <h3 id="license-heading">License Information:</h3>
+             <p>This document "Dynamic Intuition-Based Reasoning: A Novel Approach Toward Artificial General Intelligence" by Mert Can Elsner is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). This means:</p>
+             <ul>
+                <li>You are free to <strong>share</strong> — copy and redistribute the material in any medium or format</li>
+                <li>You are free to <strong>adapt</strong> — remix, transform, and build upon the material</li>
+                <li>For any purpose, including commercial use</li>
+             </ul>
+             <p>Under the following terms:</p>
+             <ul>
+                <li><strong>Attribution</strong> — You must give appropriate credit to the author, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.</li>
+             </ul>
+             <p>Full license text: <a href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noopener noreferrer">https://creativecommons.org/licenses/by/4.0/legalcode</a></p>
+             <p>© 2025 Mert Can Elsner - Veyllo GmbH</p>
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const navItems = sidebar.querySelectorAll('.nav-item'); // Get all nav items
+
+            // Elements in the main content that the sidebar links point to
+            const contentTargets = document.querySelectorAll('.content section[id], .content h1[id], .content div[id]');
+
+            // --- Function to handle click on nav item ---
+            function handleNavClick(event) {
+                let targetId = null;
+                const navItemElement = event.target.closest('.nav-item'); // Find the clicked nav-item
+
+                if (!navItemElement) return; // Exit if click was outside a nav-item
+
+                // Prioritize data-target from the clicked element or its span child first
+                targetId = event.target.getAttribute('data-target')
+                             || (event.target.tagName === 'SPAN' && event.target.getAttribute('data-target'))
+                             || navItemElement.getAttribute('data-target'); // Fallback to nav-item's target
+
+                if (targetId) {
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                         event.preventDefault();
+                        const offsetTop = targetElement.offsetTop - 30; // 30px offset from top
+                        window.scrollTo({ top: offsetTop });
+                    } else {
+                        console.warn("Scroll target element not found for ID:", targetId);
+                    }
+                }
+
+                // Toggle sub-nav if a parent item with subnav was clicked directly or its span
+                if (navItemElement.classList.contains('has-subnav')) {
+                    let clickTarget = event.target;
+                    // Check if the click was on the nav-item itself or its direct child span (the one with the text)
+                    // Ensure the click wasn't inside the sub-nav itself
+                    if (clickTarget === navItemElement || (clickTarget.tagName === 'SPAN' && clickTarget.parentElement === navItemElement && !clickTarget.closest('.sub-nav'))) {
+                        navItemElement.classList.toggle('open');
+                    }
+                }
+            }
+
+            // Add click listener to the sidebar for delegation
+            sidebar.addEventListener('click', handleNavClick);
+
+
+            // --- Intersection Observer Setup for Active State ---
+            let currentActiveId = null; // Keep track of the currently highlighted ID
+
+            const observerOptions = {
+                root: null, // relative to document viewport
+                rootMargin: "-10% 0px -80% 0px", // Activate when top enters top 10%, deactivate when leaves bottom 20%
+                threshold: 0 // Trigger as soon as the element enters/leaves the rootMargin
+            };
+
+            const observerCallback = (entries) => {
+                 let topIntersectingEntry = null;
+
+                 entries.forEach(entry => {
+                     if (entry.isIntersecting) {
+                         // Find the intersecting element that is highest on the page
+                         if (!topIntersectingEntry || entry.boundingClientRect.top < topIntersectingEntry.boundingClientRect.top) {
+                             topIntersectingEntry = entry;
+                         }
+                     }
+                 });
+
+                 let targetIdToActivate = null;
+                 if (topIntersectingEntry) {
+                     targetIdToActivate = topIntersectingEntry.target.id;
+                 }
+
+                 // Update the sidebar highlighting
+                 if (targetIdToActivate && targetIdToActivate !== currentActiveId) {
+                    currentActiveId = targetIdToActivate; // Update the tracked active ID
+
+                    navItems.forEach(item => {
+                        let itemTargetId = item.getAttribute('data-target') || (item.querySelector('span[data-target]') ? item.querySelector('span[data-target]').getAttribute('data-target') : null);
+                        let itemId = item.getAttribute('data-id'); // ID for parent sections
+
+                        // Check if this nav item corresponds to the element to activate
+                        // Match data-target directly OR match data-id if the target is a main section header
+                        let isMatch = (itemTargetId === currentActiveId) || (itemId === currentActiveId && document.getElementById(currentActiveId)?.tagName === 'SECTION');
+
+                        if (isMatch) {
+                            if (!item.classList.contains('active')) {
+                                // Remove from others first
+                                const currentlyActive = sidebar.querySelector('.nav-item.active');
+                                if (currentlyActive) currentlyActive.classList.remove('active');
+                                // Add to this item
+                                item.classList.add('active');
+                                // Scroll sidebar if needed
+                                item.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+
+                                // --- Auto-open parent if a sub-item is activated --- START ---
+                                const parentSubNav = item.closest('.sub-nav');
+                                if (parentSubNav) {
+                                    const parentNavItem = parentSubNav.closest('.nav-item.has-subnav');
+                                    if (parentNavItem && !parentNavItem.classList.contains('open')) {
+                                        // This line was previously commented out, now active:
+                                        parentNavItem.classList.add('open');
+                                    }
+                                }
+                                // --- Auto-open parent if a sub-item is activated --- END ---
+                            }
+                        } else {
+                            item.classList.remove('active'); // Remove active class if it doesn't match
+                        }
+                    });
+                }
+                 // Optional: Handle the case where no element is intersecting
+                 // (e.g., scrolling quickly into large whitespace or reaching top/bottom beyond observed elements)
+                 else if (!topIntersectingEntry && currentActiveId) {
+                      // Check if still scrolled near the top or bottom edge, if so, keep first/last active maybe?
+                      // Or simply clear the active state if preferred:
+                      // const currentlyActive = sidebar.querySelector('.nav-item.active');
+                      // if (currentlyActive) currentlyActive.classList.remove('active');
+                      // currentActiveId = null;
+                 }
+            };
+
+            const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+            // Observe the content targets
+            contentTargets.forEach(target => {
+                if(target) { // Ensure element exists
+                    observer.observe(target);
+                } else {
+                    console.warn("Element to observe not found:", target);
+                }
+            });
+
+            // --- Set initial open state (Optional) ---
+             const initialOpenSections = [
+                 // 'literature-review',
+             ];
+             initialOpenSections.forEach(id => {
+                const navItem = sidebar.querySelector(`.nav-item[data-id="${id}"]`);
+                if (navItem && navItem.classList.contains('has-subnav')) {
+                    navItem.classList.add('open');
+                }
+             });
+
+             // --- Initial active state setup ---
+             // Trigger a check shortly after load
+             setTimeout(() => {
+                 let initialTopElement = null;
+                 let minTop = Infinity;
+                 let firstElement = contentTargets[0]; // Track the very first element as fallback
+
+                 contentTargets.forEach(el => {
+                     const rect = el.getBoundingClientRect();
+                     // Find the element whose top is closest to 0 (or just below)
+                     if (rect.top >= -10 && rect.top < minTop) { // Allow slightly above viewport top
+                         minTop = rect.top;
+                         initialTopElement = el;
+                     }
+                 });
+
+                 // If no element found near the top, default to the first one
+                 if (!initialTopElement && firstElement) {
+                    initialTopElement = firstElement;
+                 }
+
+
+                 if (initialTopElement) {
+                    const initialId = initialTopElement.id;
+                     navItems.forEach(item => {
+                        let itemTargetId = item.getAttribute('data-target') || (item.querySelector('span[data-target]') ? item.querySelector('span[data-target]').getAttribute('data-target') : null);
+                        let itemId = item.getAttribute('data-id');
+                         if ((itemTargetId === initialId) || (itemId === initialId && document.getElementById(initialId)?.tagName === 'SECTION')) {
+                            item.classList.add('active');
+                            currentActiveId = initialId; // Set the initial active ID
+                            item.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+
+                             // Also open parent initially if needed
+                             const parentSubNav = item.closest('.sub-nav');
+                             if (parentSubNav) {
+                                const parentNavItem = parentSubNav.closest('.nav-item.has-subnav');
+                                if (parentNavItem && !parentNavItem.classList.contains('open')) {
+                                    parentNavItem.classList.add('open');
+                                }
+                             }
+                         }
+                    });
+                 }
+             }, 150); // Slightly increased delay
+
+        });
+    </script>
+</body>
+</html>
